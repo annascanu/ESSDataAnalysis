@@ -30,14 +30,14 @@ root-config --version
 
 To compile the scripts:
 ```bash
-c++ skim_tree.cpp `root-config --cflags --libs` -o skim_tree
-c++ data_analysis.cpp `root-config --cflags --libs` -o data_analysis
+c++ skim_tree.cpp `root-config --cflags --libs` -o skim_tree.out
+c++ data_analysis.cpp `root-config --cflags --libs` -o data_analysis.out
 ```
 
 and to run them:
 ```bash
-./skim_tree input.root 
-./data_analysis filtered_input.root
+./skim_tree.out input.root 
+./data_analysis.out filtered_input.root
 ```
 
 Replace **input.root** with the .root file produced by your Geant4 simulation.

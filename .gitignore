@@ -30,3 +30,9 @@
 *.exe
 *.out
 *.app
+
+# ROOT data files
+*.root
+
+# Executables from compilation
+*.out

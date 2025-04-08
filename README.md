@@ -30,8 +30,8 @@ root-config --version
 
 To compile the scripts:
 ```bash
-c++ skim_tree.cpp `&#96;`root-config --cflags --libs`&#96;` -o skim_tree
-c++ data_analysis.cpp `&#96;`root-config --cflags --libs`&#96;` -o data_analysis
+c++ skim_tree.cpp `root-config --cflags --libs` -o skim_tree
+c++ data_analysis.cpp `root-config --cflags --libs` -o data_analysis
 ```
 
 and to run them:

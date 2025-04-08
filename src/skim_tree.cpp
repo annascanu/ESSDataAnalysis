@@ -74,7 +74,7 @@ void filter_tree(const char* inputFile)
     // ... same thing, but for the deposited energy
     outTree->Branch("NPart_dep", &NPart_dep, "NPart_dep/I");
     outTree->Branch("HD_energy_dep", &HD_energy_dep, "HD_energy_dep[NPart_dep]/D");
-    outTree->Branch("HD_zLayer_dep", &HD_zLayer_dep, "HD_zLayer_dep[NPart_dep]/D");
+    outTree->Branch("HD_zLayer_dep", &HD_zLayer_dep, "HD_zLayer_dep[NPart_dep]/I");
     outTree->Branch("HD_x_dep", &HD_x_dep, "HD_x_dep[NPart_dep]/D");
     outTree->Branch("HD_y_dep", &HD_y_dep, "HD_y_dep[NPart_dep]/D");
 

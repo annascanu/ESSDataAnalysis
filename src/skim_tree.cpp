@@ -46,6 +46,7 @@ void filter_tree(const char* inputFile)
     int NParticles, NPart_dep, HD_PDG[MAXCELLS], HD_zLayer[MAXCELLS], HD_zLayer_dep[MAXCELLS];
     double HD_energy_kin[MAXCELLS], HD_x[MAXCELLS], HD_y[MAXCELLS], HD_time[MAXCELLS];
     double HD_energy_dep[MAXCELLS], HD_x_dep[MAXCELLS], HD_y_dep[MAXCELLS];
+    double vtxT;
 
     // Set branch addresses for the input tree
     inTree->SetBranchAddress("NParticles", &NParticles);
@@ -61,6 +62,8 @@ void filter_tree(const char* inputFile)
     inTree->SetBranchAddress("HD_zLayer_dep", &HD_zLayer_dep);
     inTree->SetBranchAddress("HD_x_dep", &HD_x_dep);
     inTree->SetBranchAddress("HD_y_dep", &HD_y_dep);
+    // Also get the absolute time of the event for a prelimminary rate estimation
+    inTree->SetBranchAddress("vtxT", &vtxT);
 
     // Create branches in the new tree for the filtered data
     TTree* outTree = new TTree("filteredTree", "Filtered tree");
@@ -77,6 +80,7 @@ void filter_tree(const char* inputFile)
     outTree->Branch("HD_zLayer_dep", &HD_zLayer_dep, "HD_zLayer_dep[NPart_dep]/I");
     outTree->Branch("HD_x_dep", &HD_x_dep, "HD_x_dep[NPart_dep]/D");
     outTree->Branch("HD_y_dep", &HD_y_dep, "HD_y_dep[NPart_dep]/D");
+    outTree->Branch("vtxT", &vtxT, "vtxT/D");
 
     Long64_t nEntries = inTree->GetEntries();
     for (Long64_t i = 0; i < nEntries; i++)

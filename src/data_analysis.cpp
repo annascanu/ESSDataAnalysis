@@ -437,13 +437,9 @@ int main(int argc, char** argv)
                     count_other++;
                 }
 
-                // Fill the deposited energy histograms
+                // Fill the deposited energy histogram
                 hd_xy_dep[idx]->Fill(HD_x_dep[j], HD_y_dep[j], HD_energy_dep[j]);
             }   
-            
-            // hd_xy_dep->Fill(HD_x_dep[j], HD_y_dep[j], HD_energy_dep[j]);
-            // hd_x_dep->Fill(HD_x_dep[j], HD_energy_dep[j]);
-            // hd_y_dep->Fill(HD_y_dep[j], HD_energy_dep[j]);
         }
     }
 
@@ -560,9 +556,9 @@ int main(int argc, char** argv)
     // Creating the number of canvases, stacks and legends for each layer
     for (int i = 0; i < nLayers; i++) 
     {
-        canvas_stack[i] = new TCanvas(Form("canvas_kinEnergy%d", i+1), Form("Kinetic energy by particle in zLayer = %d", i+1), 800, 600);
+        canvas_stack[i] = new TCanvas(Form("canvas_kinEnergy%d", i+1), Form("Kinetic energy by particle in zLayer = %d", i+1), 1000, 800);
         stack[i] = new THStack(Form("stack_z%d", i+1), Form("Kinetic energy by particle in zLayer %d", i+1));
-        legend[i] = new TLegend(0.7, 0.6, 0.9, 0.88);
+        legend[i] = new TLegend(0.65, 0.65, 0.4, 0.65);
     }
 
     for (int i = 0; i < nLayers; i++)
@@ -601,18 +597,54 @@ int main(int argc, char** argv)
         canvas_stack[i]->Print("Plots_ESS_HDAnalysis.pdf");
     }
 
-    /*
-    TCanvas* c3 = new TCanvas("c3", "Distribution of the dose on the x-y plane", 1200, 800);
-    c3->Divide(2,2);
-    //hd_xy_dep->Scale(3e1022/1e9); 
-    c3->cd(1); 
-    hd_xy_dep->Draw("COLZ");
-    c3->cd(2); 
-    hd_x_dep->Draw("hist");
-    c3->cd(3); 
-    hd_y_dep->Draw("hist");
-    */
+    // ------------------------------------------------------------------------------------
+    //                Deposited energy histograms: divided by zLayer
+    // ------------------------------------------------------------------------------------
 
+    double bin_volume = 1 * 5 * 5; // in cm^3 
+    double bin_mass = 0;
+
+    double density_Ne = 0.839e-3; // g/cm^3
+    double density_Eth = 1.263e-3; // g/cm^3
+    double density_CF4 = 1.25e-3; // g/cm^3
+    double mix_Ne = 0.8; // 80% of Ne
+    double mix_Eth = 0.1; // 10% of Eth
+    double mix_CF4 = 0.1; // 10% of CF4
+
+    bin_mass = (bin_volume*(density_Ne * mix_Ne + density_Eth * mix_Eth + density_CF4 * mix_CF4))/1e3; // In kg
+    // Conversion factor: multiply by conversion from MeV to J and divide by the mass of the bin
+    // All of this is also normalized by the total number of POTs in a year, which is 3e22.
+    
+    // Later on: might make this conversion factor not hard-coded so that it depends on the actual number
+    // of jobs and primaries per job. For now: 10 jobs of 10000 pi+ each = 10^5 primaries
+    double number_POT_year = 3e22;
+    // int number_jobs = 10;
+    // int number_piPlus = 10000;
+    // int number_total = number_jobs * number_primaries;
+    // int number_POTs_jobs = number_total * 1e4; 
+    // WHY THIS CONVERSION FACTOR? Since for each POT we have about 1e-4 pi+ entering
+    // the tunnel, to obtain the number of POTs needed for the number of primaries that we set we need to
+    // multiply the total number of primaries simulated at the entrance of the tunnel by a factor 1e4.
+    // int scale = number_POT_year / number_POT_jobs;
+
+    TCanvas* canvas_dep_energy[nLayers];
+
+    for (int i = 0; i < nLayers; i++)
+    {
+        canvas_dep_energy[i] = new TCanvas(Form("canvas_dep_energy%d", i+1), Form("Dose estimation in zLayer = %d", i+1), 800, 600);
+        canvas_dep_energy[i]->cd();
+
+        hd_xy_dep[i]->Scale( (number_POT_year/1e9) * (1e-13/bin_mass) ); // To obtain the dose in Gy for 3e22 POT/year
+        hd_xy_dep[i]->SetTitle(Form("Estimated dose in zLayer = %d", i+1));
+        hd_xy_dep[i]->GetXaxis()->SetTitle("x (mm)");
+        hd_xy_dep[i]->GetYaxis()->SetTitle("y (mm)");
+        hd_xy_dep[i]->GetZaxis()->SetTitle("Dose/year (Gy)");
+        hd_xy_dep[i]->Draw("COLZ");
+
+        canvas_dep_energy[i]->Print("Plots_ESS_HDAnalysis.pdf");
+    }
+
+    // This is just to close the .pdf file with the plots. I have no idea how to do this otherwise
     TCanvas* c4 = new TCanvas("c4", "Hadron dump x, y distributions", 1200, 800);
     c4->Print("Plots_ESS_HDAnalysis.pdf]");
 

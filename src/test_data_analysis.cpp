@@ -104,8 +104,8 @@ int main(int argc, char** argv)
         hd_other_noNeutrons_x[i] = new TH1F(Form("hd_other_noNeutrons_x_z%d", i+1), Form("other x distribution with zLayer = %d", i+1), n_bins, -2500, 2500);
         hd_other_noNeutrons_y[i] = new TH1F(Form("hd_other_noNeutrons_y_z%d", i+1), Form("other y distribution with zLayer = %d", i+1), n_bins, -2500, 2500);
 
-        h_mu_plus_rate[i] = new TH2F(Form("h_mu_plus_rate_z%d", i+1), Form("mu+ rate with zLayer = %d", i+1), 30, -750, 750, 30, -750, 750);
-        h_otherChargedParticles_rate[i] = new TH2F(Form("h_otherChargedParticles_rate_z%d", i+1), Form("other charged particles rate with zLayer = %d", i+1), 30, -750, 750, 30, -750, 750);
+        h_mu_plus_rate[i] = new TH2F(Form("h_mu_plus_rate_z%d", i+1), Form("mu+ rate with zLayer = %d", i+1), n_bins, -2500, 2500, n_bins, -2500, 2500);
+        h_otherChargedParticles_rate[i] = new TH2F(Form("h_otherChargedParticles_rate_z%d", i+1), Form("other charged particles rate with zLayer = %d", i+1), n_bins, -2500, 2500, n_bins, -2500, 2500);
 
         h_mu[i]       = new TH1F(Form("h_mu_z%d", i+1), Form("mu- with zLayer = %d", i+1), 100, 0, 1000);
         h_mu_plus[i]  = new TH1F(Form("h_mu_plus_z%d", i+1), Form("mu+ with zLayer = %d", i+1), 100, 0, 1000);
@@ -126,110 +126,83 @@ int main(int argc, char** argv)
     // DeltaT and the area of each bin. (NOTE: The reason for this preliminary estimate is in my personal notes)
 
     Long64_t nentries = t->GetEntries();
-    for (Long64_t i = 0; i < nentries; i++) 
-    {
-        t->GetEntry(i);
-    
-        if (vtxT > max_vtxT)
-            max_vtxT = vtxT;
-    
-        for (int j = 0; j < NParticles; j++) 
-        {
-            int z = HD_zLayer[j];
-            //if (z < 1 || z > 4) 
-            //    continue; // In case there's any issue witht the zLayer
-            int idx = z - 1;
-    
-            // x, y distributions
-            hd_xy[idx]->Fill(HD_x[j], HD_y[j]);
-            hd_x[idx]->Fill(HD_x[j]);
-            hd_y[idx]->Fill(HD_y[j]);
-    
-            // Particle-specific x/y histograms
-            if (HD_PDG[j] == -13) 
-            {
-                hd_mu_plus_x[idx]->Fill(HD_x[j]);
-                hd_mu_plus_y[idx]->Fill(HD_y[j]);
-            } 
-            else if (abs(HD_PDG[j]) == 211) 
-            {
-                hd_pi_x[idx]->Fill(HD_x[j]);
-                hd_pi_y[idx]->Fill(HD_y[j]);
-            } 
-            else if (abs(HD_PDG[j]) != 2112) 
-            {
-                hd_other_noNeutrons_x[idx]->Fill(HD_x[j]);
-                hd_other_noNeutrons_y[idx]->Fill(HD_y[j]);
-            }
-    
-            // Rate histograms
-            if (HD_PDG[j] == -13) 
-            {
-                h_mu_plus_rate[idx]->Fill(HD_x[j], HD_y[j]);   
-            } 
-            else if (abs(HD_PDG[j]) == 211 || abs(HD_PDG[j]) == 2212 ||
-                     abs(HD_PDG[j]) == 321 || abs(HD_PDG[j]) == 11 || abs(HD_PDG[j]) == 13) 
-            {
-                h_otherChargedParticles_rate[idx]->Fill(HD_x[j], HD_y[j]);
-            }
-    
-            // Kinetic energy histograms (energy threshold > 10)
-            double E_kin = HD_energy_kin[j];
-            if (E_kin > 10) 
-            {
-                int pdg = HD_PDG[j];
-                if (pdg == 13) 
-                {
-                    h_mu[idx]->Fill(E_kin);
-                    count_mu++;
-                } 
-                else if (pdg == -13) 
-                {
-                    h_mu_plus[idx]->Fill(E_kin);
-                    count_mu_plus++;
-                } 
-                else if (abs(pdg) == 211) 
-                {
-                    h_pi[idx]->Fill(E_kin);
-                    count_pi++;
-                } 
-                else if (abs(pdg) == 321) 
-                {
-                    h_K[idx]->Fill(E_kin);
-                    count_K++;
-                } 
-                else if (abs(pdg) == 11) 
-                {
-                    h_e[idx]->Fill(E_kin);
-                    count_e++;
-                } 
-                else if (pdg == 2112) 
-                {
-                    h_n[idx]->Fill(E_kin);
-                    count_n++;
-                } 
-                else if (abs(pdg) == 2212) 
-                {
-                    h_p[idx]->Fill(E_kin);
-                    count_p++;
-                } 
-                else 
-                {
-                    h_other[idx]->Fill(E_kin);
-                    count_other++;
-                }
-            }
-    
-            // Deposited energy
-            hd_xy_dep[idx]->Fill(HD_x_dep[j], HD_y_dep[j], HD_energy_dep[j]);
+for (Long64_t i = 0; i < nentries; i++) {
+    t->GetEntry(i);
+
+    if (vtxT > max_vtxT)
+        max_vtxT = vtxT;
+
+    for (int j = 0; j < NParticles; j++) {
+        int z = HD_zLayer[j];
+        if (z < 1 || z > 4) continue; // skip invalid layers
+        int idx = z - 1;
+
+        // x, y distributions
+        hd_xy[idx]->Fill(HD_x[j], HD_y[j]);
+        hd_x[idx]->Fill(HD_x[j]);
+        hd_y[idx]->Fill(HD_y[j]);
+
+        // Particle-specific x/y histograms
+        if (HD_PDG[j] == -13) {
+            hd_mu_plus_x[idx]->Fill(HD_x[j]);
+            hd_mu_plus_y[idx]->Fill(HD_y[j]);
+        } else if (abs(HD_PDG[j]) == 211) {
+            hd_pi_x[idx]->Fill(HD_x[j]);
+            hd_pi_y[idx]->Fill(HD_y[j]);
+        } else if (abs(HD_PDG[j]) != 2112) {
+            hd_other_noNeutrons_x[idx]->Fill(HD_x[j]);
+            hd_other_noNeutrons_y[idx]->Fill(HD_y[j]);
         }
+
+        // Rate histograms
+        if (HD_PDG[j] == -13) {
+            h_mu_plus_rate[idx]->Fill(HD_x[j], HD_y[j]);   
+        } else if (abs(HD_PDG[j]) == 211 || abs(HD_PDG[j]) == 2212 ||
+                   abs(HD_PDG[j]) == 321 || abs(HD_PDG[j]) == 11 || HD_PDG[j] == 13) {
+            h_otherChargedParticles_rate[idx]->Fill(HD_x[j], HD_y[j]);
+        }
+
+        // Kinetic energy histograms (energy threshold > 10)
+        double E_kin = HD_energy_kin[j];
+        if (E_kin > 10) {
+            int pdg = HD_PDG[j];
+            if (pdg == 13) {
+                h_mu[idx]->Fill(E_kin);
+                count_mu++;
+            } else if (pdg == -13) {
+                h_mu_plus[idx]->Fill(E_kin);
+                count_mu_plus++;
+            } else if (abs(pdg) == 211) {
+                h_pi[idx]->Fill(E_kin);
+                count_pi++;
+            } else if (abs(pdg) == 321) {
+                h_K[idx]->Fill(E_kin);
+                count_K++;
+            } else if (abs(pdg) == 11) {
+                h_e[idx]->Fill(E_kin);
+                count_e++;
+            } else if (pdg == 2112) {
+                h_n[idx]->Fill(E_kin);
+                count_n++;
+            } else if (abs(pdg) == 2212) {
+                h_p[idx]->Fill(E_kin);
+                count_p++;
+            } else {
+                h_other[idx]->Fill(E_kin);
+                count_other++;
+            }
+        }
+
+        // Deposited energy
+        hd_xy_dep[idx]->Fill(HD_x_dep[j], HD_y_dep[j], HD_energy_dep[j]);
     }
+}
 
     double Delta_T = max_vtxT * 10; // Preliminary estimate for the DeltaT needed for the rate calculation: it is 
     // equal to 10 times the duration of each job, assuming that the number of jobs is equal to 10.
     // I might need to make the number of jobs a variable in the future.
-    double area = 5 * 5; // Area of each bin in the x-y plane (in cm^2)
-    double rate_conversion_factor = 1 / (Delta_T *1e-9* area); // Conversion factor for the rate calculation
+    double area = 50 * 50; // Area of each bin in the x-y plane (in mm^2)
+    double rate_conversion_factor = 1 / (Delta_T * area); // Conversion factor for the rate calculation
 
     // ------------------------------------------------------------------------------------
     // x, y, x vs. y distributions; also dividing by number of layer and type of particle
@@ -247,7 +220,6 @@ int main(int argc, char** argv)
     TCanvas* canvas_mu_distrib_y[nLayers];
     TLegend* legend_mu_distrib_y[nLayers];
     TCanvas* canvas_rate[nLayers];
-    TCanvas* canvas_other_rate[nLayers];
     THStack* stack_x_distr[nLayers];
     THStack* stack_y_distr[nLayers];
     /// TLegend* legend_rate[nLayers];
@@ -261,20 +233,10 @@ int main(int argc, char** argv)
         canvas_x_y_distrib[i] -> cd();
         canvas_x_y_distrib[i] -> Divide(2, 2);
         canvas_x_y_distrib[i] -> cd(1);
-        hd_xy[i] -> SetTitle(Form("HD_x vs HD_y with zLayer = %d", i+1));
-        hd_xy[i] -> GetXaxis() -> SetTitle("x (mm)");
-        hd_xy[i] -> GetYaxis() -> SetTitle("y (mm)");
-        hd_xy[i] -> GetZaxis() -> SetTitle("Number of entries");
         hd_xy[i] -> Draw("COLZ");
         canvas_x_y_distrib[i] -> cd(2);
-        hd_x[i] -> SetTitle(Form("HD_x with zLayer = %d", i+1));
-        hd_x[i] -> GetXaxis() -> SetTitle("x (mm)");
-        hd_x[i] -> GetYaxis() -> SetTitle("Number of entries");
         hd_x[i] -> Draw("hist");
         canvas_x_y_distrib[i] -> cd(3);
-        hd_y[i] -> SetTitle(Form("HD_y with zLayer = %d", i+1));
-        hd_y[i] -> GetXaxis() -> SetTitle("y (mm)");
-        hd_y[i] -> GetYaxis() -> SetTitle("Number of entries");
         hd_y[i] -> Draw("hist");
         canvas_x_y_distrib[i] -> Print("Plots_ESS_HDAnalysis.pdf");
 
@@ -285,15 +247,6 @@ int main(int argc, char** argv)
         hd_pi_x[i]->SetLineWidth(2);
         hd_other_noNeutrons_x[i]->SetLineColor(kGreen+2);
         hd_other_noNeutrons_x[i]->SetLineWidth(2);
-        hd_mu_plus_x[i]->SetTitle(Form("mu+ x distribution with zLayer = %d", i+1));
-        hd_mu_plus_x[i]->GetXaxis()->SetTitle("x (mm)");
-        hd_mu_plus_x[i]->GetYaxis()->SetTitle("Number of entries");
-        hd_pi_x[i]->SetTitle(Form("pi x distribution with zLayer = %d", i+1));
-        hd_pi_x[i]->GetXaxis()->SetTitle("x (mm)");
-        hd_pi_x[i]->GetYaxis()->SetTitle("Number of entries");
-        hd_other_noNeutrons_x[i]->SetTitle(Form("other x distribution with zLayer = %d", i+1));
-        hd_other_noNeutrons_x[i]->GetXaxis()->SetTitle("x (mm)");
-        hd_other_noNeutrons_x[i]->GetYaxis()->SetTitle("Number of entries");
 
         canvas_mu_distrib_x[i] = new TCanvas(Form("canvas_mu_distrib_x%d", i+1), Form("Hadron dump x distribution for mu+ in zLayer = %d", i+1), 1200, 800);
         canvas_mu_distrib_x[i]->cd();
@@ -308,9 +261,6 @@ int main(int argc, char** argv)
         legend_mu_distrib_x[i]->AddEntry(hd_pi_x[i], "pi", "f");
         legend_mu_distrib_x[i]->AddEntry(hd_other_noNeutrons_x[i], "other particles (no neutrons)", "f");
         stack_x_distr[i]->Draw("nostack");
-        stack_x_distr[i]->SetTitle(Form("x distribution for mu+, pi, and other particles in zLayer = %d", i+1));
-        stack_x_distr[i]->GetXaxis()->SetTitle("x (mm)");
-        stack_x_distr[i]->GetYaxis()->SetTitle("Number of entries");
         legend_mu_distrib_x[i]->Draw();
         canvas_mu_distrib_x[i]->Print("Plots_ESS_HDAnalysis.pdf");
 
@@ -341,8 +291,7 @@ int main(int argc, char** argv)
         // Another canvas for the rate
         canvas_rate[i] = new TCanvas(Form("canvas_rate%d", i+1), Form("Rate of mu+ and other charged particles in zLayer = %d", i+1), 1200, 800);
         canvas_rate[i]->cd();
-        canvas_rate[i] -> SetRightMargin(0.15);
-        // canvas_rate[i] -> Divide(2, 1);
+        canvas_rate[i] -> Divide(2, 1);
         h_mu_plus_rate[i]->Scale(rate_conversion_factor);
         h_mu_plus_rate[i]->SetLineColor(kRed);
         h_mu_plus_rate[i]->SetLineWidth(2);
@@ -350,23 +299,19 @@ int main(int argc, char** argv)
         h_otherChargedParticles_rate[i]->SetLineColor(kBlue);
         h_otherChargedParticles_rate[i]->SetLineWidth(2);
 
-        //canvas_rate[i] -> cd(1);
+        canvas_rate[i] -> cd(1);
         h_mu_plus_rate[i]->SetTitle(Form("Rate of mu+ in zLayer = %d", i+1));
         h_mu_plus_rate[i]->GetXaxis()->SetTitle("x (mm)");
         h_mu_plus_rate[i]->GetYaxis()->SetTitle("y (mm)");
-        h_mu_plus_rate[i]->GetZaxis()->SetTitle("Rate (Hz/cm^2)");
+        h_mu_plus_rate[i]->GetZaxis()->SetTitle("Rate (Hz/mm^2)");
         h_mu_plus_rate[i]->Draw("COLZ");
-        canvas_rate[i]->Print("Plots_ESS_HDAnalysis.pdf");
-        // canvas_rate[i] -> cd(2);
-        canvas_other_rate[i] = new TCanvas(Form("canvas_other_rate%d", i+1), Form("Rate of other charged particles in zLayer = %d", i+1), 1200, 800);
-        canvas_other_rate[i]->cd();
-        canvas_other_rate[i] -> SetRightMargin(0.15);
+        canvas_rate[i] -> cd(2);
         h_otherChargedParticles_rate[i]->SetTitle(Form("Rate of other charged particles in zLayer = %d", i+1));
         h_otherChargedParticles_rate[i]->GetXaxis()->SetTitle("x (mm)");
         h_otherChargedParticles_rate[i]->GetYaxis()->SetTitle("y (mm)");
-        h_otherChargedParticles_rate[i]->GetZaxis()->SetTitle("Rate (Hz/cm^2)");
+        h_otherChargedParticles_rate[i]->GetZaxis()->SetTitle("Rate (Hz/mm^2)");
         h_otherChargedParticles_rate[i]->Draw("COLZ");
-        canvas_other_rate[i]->Print("Plots_ESS_HDAnalysis.pdf");
+        canvas_rate[i]->Print("Plots_ESS_HDAnalysis.pdf");
     }
 
     // ------------------------------------------------------------------------------------
@@ -406,10 +351,7 @@ int main(int argc, char** argv)
         stack[i] -> Add(h_pi[i]);
         stack[i] -> Add(h_mu[i]);
         stack[i] -> Add(h_mu_plus[i]);
-        stack[i] -> Draw();
-        stack[i] -> SetTitle(Form("Kinetic energy by particle in zLayer %d", i+1));
-        stack[i] -> GetXaxis() -> SetTitle("Kinetic energy (MeV)");
-        stack[i] -> GetYaxis() -> SetTitle("Number of entries");
+        stack[i] ->Draw();
 
         legend[i]->AddEntry(h_mu[i], "mu-", "f");
         legend[i]->AddEntry(h_mu_plus[i], "mu+", "f");
@@ -468,11 +410,15 @@ int main(int argc, char** argv)
         hd_xy_dep[i]->GetZaxis()->SetTitle("Dose/year (Gy)");
         hd_xy_dep[i]->Draw("COLZ");
 
-        canvas_dep_energy[i]->SetRightMargin(0.15);
         canvas_dep_energy[i]->Print("Plots_ESS_HDAnalysis.pdf");
     }
 
+    // This is just to close the .pdf file with the plots. I have no idea how to do this otherwise
+    // TCanvas* c4 = new TCanvas("c4", "Hadron dump x, y distributions", 1200, 800);
+    // c4->Print("Plots_ESS_HDAnalysis.pdf]");
+
     c1 -> Print("Plots_ESS_HDAnalysis.pdf]");
+
     myApp->Run();
     return 0;
 }
